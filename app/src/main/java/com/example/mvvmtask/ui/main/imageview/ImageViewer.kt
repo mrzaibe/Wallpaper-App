@@ -18,7 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.mvvmtask.data.model.WallPaperPhotos
+import com.example.mvvmtask.data.model.apimodel.WallPaperPhotos
 
 @Composable
 fun ImageViewer(wallPaperPhotos: WallPaperPhotos?, onClickDownloadBtn: () -> Unit) {

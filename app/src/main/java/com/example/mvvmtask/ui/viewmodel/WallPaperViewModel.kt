@@ -1,19 +1,13 @@
 package com.example.mvvmtask.ui.viewmodel
 
-import android.content.Context
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import com.example.mvvmtask.data.database.entities.SavedPhotosEntity
-import com.example.mvvmtask.data.model.WallPaperPhotos
+import com.example.mvvmtask.data.model.apimodel.WallPaperPhotos
 import com.example.mvvmtask.data.repositoryImp.WallPaperRepository
 import com.example.mvvmtask.utils.Resource
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.File
 
 class WallPaperViewModel(private var wallPaperRepository: WallPaperRepository) : ViewModel() {
 

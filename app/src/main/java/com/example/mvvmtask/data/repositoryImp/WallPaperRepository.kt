@@ -1,6 +1,6 @@
 package com.example.mvvmtask.data.repositoryImp
 
-import com.example.mvvmtask.data.model.WallPaperPhotos
+import com.example.mvvmtask.data.model.apimodel.WallPaperPhotos
 import com.example.mvvmtask.data.network.ApiService
 
 

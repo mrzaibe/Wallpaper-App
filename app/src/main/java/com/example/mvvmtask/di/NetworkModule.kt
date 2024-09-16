@@ -7,6 +7,7 @@ import com.example.mvvmtask.data.database.dao.SavedPhotosDao
 import com.example.mvvmtask.data.network.ApiService
 import com.example.mvvmtask.data.repositoryImp.SavedPhotosRepository
 import com.example.mvvmtask.data.repositoryImp.WallPaperRepository
+import com.example.mvvmtask.ui.main.gallery.GalleryImagesViewModel
 import com.example.mvvmtask.ui.viewmodel.SavedPhotosViewModel
 import com.example.mvvmtask.ui.viewmodel.WallPaperViewModel
 import com.example.mvvmtask.utils.API_KEY
@@ -66,6 +67,9 @@ class NetworkModule {
         val wallPaperViewModel= module {
             viewModel {
                 WallPaperViewModel(get())
+            }
+            viewModel {
+                GalleryImagesViewModel(get())
             }
 
             viewModel {

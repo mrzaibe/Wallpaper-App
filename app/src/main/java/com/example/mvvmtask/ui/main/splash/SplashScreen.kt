@@ -52,7 +52,7 @@ fun AnimatedSplashScreen(navController: NavController) {
     LaunchedEffect(key1 = true) {
         startAnimation = true
         delay(2000)
-        navController.navigate(Screen.Home.route) {
+        navController.navigate(Screen.LivePhotos.route) {
             popUpTo(Screen.Splash.route) { inclusive = true }
         }
     }

@@ -1,6 +1,6 @@
 package com.example.mvvmtask.data.network
 
-import com.example.mvvmtask.data.model.WallPaperModel
+import com.example.mvvmtask.data.model.apimodel.WallPaperModel
 import retrofit2.http.GET
 import retrofit2.http.Query
 

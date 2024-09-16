@@ -18,9 +18,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.mvvmtask.navigation.BottomBar
 import com.example.mvvmtask.navigation.Screen
 import com.example.mvvmtask.navigation.SetupNavGraph
+import com.example.mvvmtask.navigation.TopBar
+import com.example.mvvmtask.ui.main.gallery.GalleryImagesViewModel
 import com.example.mvvmtask.ui.theme.MVVMTaskTheme
 import com.example.mvvmtask.ui.viewmodel.SavedPhotosViewModel
 import com.example.mvvmtask.ui.viewmodel.WallPaperViewModel
@@ -29,13 +30,18 @@ import org.koin.android.ext.android.inject
 class MainActivity : ComponentActivity() {
     private val viewModel by inject<WallPaperViewModel>()
     private val savedPhotosViewModel by inject<SavedPhotosViewModel>()
+    private val galleryImagesViewModel by inject<GalleryImagesViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //enableEdgeToEdge()
         setContent {
             MVVMTaskTheme {
-                App(wallPaperViewModel = viewModel, savedPhotosViewModel = savedPhotosViewModel)
+                App(
+                    wallPaperViewModel = viewModel,
+                    savedPhotosViewModel = savedPhotosViewModel,
+                    galleryImagesViewModel = galleryImagesViewModel
+                )
             }
         }
     }
@@ -43,47 +49,51 @@ class MainActivity : ComponentActivity() {
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun App(wallPaperViewModel: WallPaperViewModel, savedPhotosViewModel: SavedPhotosViewModel) {
+fun App(
+    wallPaperViewModel: WallPaperViewModel,
+    savedPhotosViewModel: SavedPhotosViewModel,
+    galleryImagesViewModel: GalleryImagesViewModel
+) {
     val navController = rememberNavController()
-    val items = listOf(Screen.Home, Screen.Saved)
+    val items = listOf(
+        Screen.LivePhotos,
+        Screen.GalleryPhotosScreen,
+        Screen.CameraPhotosScreen,
+        Screen.Saved
+    )
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-
-    Scaffold(
-        modifier = Modifier.background(Color.White),
-        bottomBar = {
-            if (currentRoute in items.map { it.route }) {
-                BottomBar(navController = navController)
-            }
+    Column {
+        if (currentRoute in items.map { item -> item.route }) {
+            Text(
+                text = "HD Wallpapers",
+                modifier = Modifier.padding(20.dp),
+                color = Color.Black,
+                style = MaterialTheme.typography.titleLarge
+            )
         }
-    ) {
-        Column(modifier = Modifier.padding(it).background(Color.White)) { // Pass padding from Scaffold to Column
-            if (currentRoute in items.map { item -> item.route }) {
-                Text(
-                    text = "HD Wallpapers",
-                    modifier = Modifier.padding(20.dp),
-                    color = Color.Black,
-                    style = MaterialTheme.typography.titleLarge
-                )
+        Scaffold(
+            modifier = Modifier.background(Color.White),
+            topBar = {
+                if (currentRoute in items.map { it.route }) {
+                    TopBar(navController = navController)
+                }
             }
+        ) {
             SetupNavGraph(
+                it,
                 navController = navController,
                 startDestination = Screen.Splash.route,
                 wallPaperViewModel,
-                savedPhotosViewModel = savedPhotosViewModel
+                savedPhotosViewModel = savedPhotosViewModel,
+                galleryImagesViewModel = galleryImagesViewModel
             )
         }
     }
+
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
 
 @Preview(showBackground = true)
 @Composable
