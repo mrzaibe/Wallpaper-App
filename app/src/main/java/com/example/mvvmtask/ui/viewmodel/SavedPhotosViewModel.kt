@@ -18,6 +18,7 @@ class SavedPhotosViewModel(private var savedPhotosRepository: SavedPhotosReposit
 
 
     var savedPhotosEntity:SavedPhotosEntity?=null
+    var savedPhotosClickPosition:Int?=0
 
     init {
         getAllSavedPhotos()
@@ -40,6 +41,12 @@ class SavedPhotosViewModel(private var savedPhotosRepository: SavedPhotosReposit
     fun insertPhotos(savedPhotosEntity: SavedPhotosEntity) {
         viewModelScope.launch(Dispatchers.IO) {
             savedPhotosRepository.insertPhotos(savedPhotosEntity)
+        }
+    }
+
+    fun insertMultiplePhotos(savedPhotosEntity: List<SavedPhotosEntity>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            savedPhotosRepository.insertMultiplePhotos(savedPhotosEntity)
         }
     }
 }

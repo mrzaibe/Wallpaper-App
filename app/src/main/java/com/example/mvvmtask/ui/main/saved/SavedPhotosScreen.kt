@@ -43,6 +43,7 @@ import com.example.mvvmtask.utils.Status
 @Composable
 fun SavedPhotosScreen(
     wallPaperViewModel: SavedPhotosViewModel,
+    onClickViewImage: (Int) -> Unit,
     onClickEditImage: (SavedPhotosEntity) -> Unit,
     onClickApplyFilter: (SavedPhotosEntity) -> Unit
 ) {
@@ -75,6 +76,7 @@ fun SavedPhotosScreen(
 
     EditImageDialog(
         openDialog = openDialog,
+        onClickViewImage,
         onClickEditImage,
         onClickApplyFilter,
         wallPaperViewModel
@@ -135,7 +137,6 @@ fun PhotoItem(
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-//                onClickImage(photo)
                 savedPhotosViewModel.savedPhotosEntity = photo
                 openDialog.value = true
             }
@@ -166,6 +167,7 @@ fun PhotoItem(
 @Composable
 fun EditImageDialog(
     openDialog: MutableState<Boolean>,
+    onClickViewImage: (Int) -> Unit,
     onClickEditImage: (SavedPhotosEntity) -> Unit,
     onClickApplyFilter: (SavedPhotosEntity) -> Unit,
     savedPhotosViewModel: SavedPhotosViewModel,
@@ -182,6 +184,28 @@ fun EditImageDialog(
             },
             text = {
                 Column {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(color = Color.White)
+                            .border(1.dp, Color(0xFF888888), shape = RoundedCornerShape(12.dp))
+                            .clickable {
+                                savedPhotosViewModel.savedPhotosEntity?.let {
+                                     val position=savedPhotosViewModel.savedPhotosPhotos.value?.data?.indexOf(it)?:0
+                                    onClickViewImage(position)
+                                }
+                                openDialog.value = false
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "View Image",
+                            modifier = Modifier
+                                .padding(10.dp)
+                        )
+                    }
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -224,13 +248,13 @@ fun EditImageDialog(
                     Box(
                         modifier = Modifier
                             .padding(top = 20.dp, bottom = 8.dp)
-                            .width(70.dp) // Set the width of the divider
-                            .height(3.dp) // Set the thickness of the divider
+                            .width(70.dp)
+                            .height(3.dp)
                             .background(
-                                color = Color.Gray, // Set the color of the divider
-                                shape = RoundedCornerShape(50) // Make the corners fully rounded
+                                color = Color.Gray,
+                                shape = RoundedCornerShape(50)
                             )
-                            .align(Alignment.CenterHorizontally) // Center align the divider horizontally
+                            .align(Alignment.CenterHorizontally)
                     )
 
                     Box(

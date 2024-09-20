@@ -28,19 +28,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.mvvmtask.R
 import com.example.mvvmtask.data.database.entities.SavedPhotosEntity
 import com.example.mvvmtask.ui.viewmodel.SavedPhotosViewModel
 import com.example.mvvmtask.utils.applyBrightnessContrast
-import com.example.mvvmtask.utils.saveImage
+import com.example.mvvmtask.utils.compressAndSaveImageToMediaStore
+import com.example.mvvmtask.utils.saveCapturedImage
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
 fun EditImageScreen(
-    scope: CoroutineScope,
     savedPhotosEntity: SavedPhotosEntity?,
     savedPhotosViewModel: SavedPhotosViewModel,
     navController: NavHostController,
@@ -74,33 +76,33 @@ fun EditImageScreen(
         }
 
         // Brightness Slider
-        Text(text = "Brightness", modifier = Modifier.padding(top = 16.dp))
+        Text(text = stringResource(R.string.brightness), modifier = Modifier.padding(top = 16.dp))
         Slider(
             value = brightness,
             onValueChange = { brightness = it },
-            valueRange = 0f..2f,  // Adjust the range as needed
+            valueRange = 0f..2f,
             modifier = Modifier.fillMaxWidth()
         )
 
         // Contrast Slider
-        Text(text = "Contrast", modifier = Modifier.padding(top = 16.dp))
+        Text(text = stringResource(R.string.contrast), modifier = Modifier.padding(top = 16.dp))
         Slider(
             value = contrast,
             onValueChange = { contrast = it },
-            valueRange = 0f..2f,  // Adjust the range as needed
+            valueRange = 0f..2f,
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Save Button
         Button(
             onClick = {
                 editedBitmap?.let { bitmap ->
-                    context.saveImage(scope, bitmap) { path ->
-                        val updatedEntity = savedPhotosEntity?.copy(imagePath = path)
+                    context.compressAndSaveImageToMediaStore(bitmap) { path ->
+                        val updatedEntity = savedPhotosEntity?.copy(imagePath = path?:"")
                         updatedEntity?.let {
                             savedPhotosViewModel.insertPhotos(it)
                         }
-                        Toast.makeText(context, "Image Saved Successfully", Toast.LENGTH_SHORT)
+                        Toast.makeText(context,
+                            context.getString(R.string.image_saved_successfully), Toast.LENGTH_SHORT)
                             .show()
                         navController.popBackStack()
                     }
@@ -119,7 +121,7 @@ fun EditImageScreen(
         ) {
             Text(
                 color = Color.White,
-                text = "Save Image", style = MaterialTheme.typography.titleLarge,
+                text = stringResource(R.string.save_image), style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth(),

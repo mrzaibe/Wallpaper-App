@@ -23,7 +23,7 @@ class WallPaperViewModel(private var wallPaperRepository: WallPaperRepository) :
         fetchCuratedPhotos()
     }
 
-    private fun fetchCuratedPhotos(perPageImages: Int = 30, page: Int = 1) {
+    private fun fetchCuratedPhotos(perPageImages: Int = 80, page: Int = 1) {
         viewModelScope.launch {
             _curatedPhotos.postValue(Resource.loading(null))
             try {

@@ -77,7 +77,6 @@ fun BottomNavigationItem(
                 .size(width = 50.dp, height = 70.dp)
                 .clip(RoundedCornerShape(32.dp))
                 .clickable(onClick = {
-                    // Navigate to the selected tab
                     navController.navigate(screen.route) {
                         popUpTo(navController.graph.startDestinationId)
                         // launchSingleTop = true

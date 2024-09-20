@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "MVVM Task"
 include(":app")
- 
+include(":permissions")

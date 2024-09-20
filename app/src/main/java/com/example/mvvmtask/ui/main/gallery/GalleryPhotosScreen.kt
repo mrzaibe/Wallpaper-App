@@ -1,15 +1,8 @@
 package com.example.mvvmtask.ui.main.gallery
 
 import android.Manifest
-import android.app.Activity
-import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
-import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,17 +35,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import coil.ImageLoader
 import coil.compose.AsyncImage
-import coil.disk.DiskCache
-import coil.memory.MemoryCache
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.mvvmtask.data.model.gallery.ImageData
 import com.example.mvvmtask.ui.main.photos.LoadingView
+import com.example.mvvmtask.ui.viewmodel.GalleryImagesViewModel
 import com.example.mvvmtask.utils.Status
+import com.example.mvvmtask.utils.requestForStoragePermission
 
 @Composable
 fun GalleryPhotos(
@@ -60,16 +51,12 @@ fun GalleryPhotos(
     onClickImage: (Pair<List<ImageData>, Int>) -> Unit
 ) {
     var permissionGranted by remember { mutableStateOf(false) }
-    var permissionRequested by remember { mutableStateOf(false) }
-    var permanentlyDenied by remember { mutableStateOf(false) }
-    var showRationale by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     val galleryImagesState by galleryImagesViewModel.galleryImages.collectAsState()
-
     val storagePermissions = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-            arrayOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO)
+            arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
         }
 
         else -> {
@@ -79,100 +66,28 @@ fun GalleryPhotos(
             )
         }
     }
-
-    // Check permissions when the composable is first launched
-    LaunchedEffect(Unit) {
-        val allPermissionsGranted = storagePermissions.all { permission ->
-            ContextCompat.checkSelfPermission(
-                context,
-                permission
-            ) == PackageManager.PERMISSION_GRANTED
-        }
-
-        if (allPermissionsGranted) {
-            galleryImagesViewModel.fetchImagesFromStorage(context)
-            permissionGranted = true
-        } else {
-            permissionRequested = true
-            showRationale = storagePermissions.any { permission ->
-                ActivityCompat.shouldShowRequestPermissionRationale(context as Activity, permission)
-            }
-            permanentlyDenied = storagePermissions.all { permission ->
-                ContextCompat.checkSelfPermission(
-                    context,
-                    permission
-                ) == PackageManager.PERMISSION_DENIED &&
-                        !ActivityCompat.shouldShowRequestPermissionRationale(
-                            context as Activity,
-                            permission
-                        )
-            }
-        }
-    }
-
-    // Launcher for requesting permissions
-    val launcher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            permissionGranted = permissions.all { it.value }
-            if (permissionGranted) {
-                galleryImagesViewModel.fetchImagesFromStorage(context)
-            } else {
-                showRationale = storagePermissions.any { permission ->
-                    ActivityCompat.shouldShowRequestPermissionRationale(
-                        context as Activity,
-                        permission
-                    )
-                }
-                permanentlyDenied = storagePermissions.all { permission ->
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        permission
-                    ) == PackageManager.PERMISSION_DENIED &&
-                            !ActivityCompat.shouldShowRequestPermissionRationale(
-                                context as Activity,
-                                permission
-                            )
-                }
-            }
-        }
-
-
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        if (!permissionGranted) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+        LaunchedEffect(Unit) {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                        Manifest.permission.READ_MEDIA_IMAGES
+                    else Manifest.permission.READ_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED
             ) {
-                if (!permissionGranted && permissionRequested) {
-                    if (showRationale) {
-                        Text("Storage permission is needed. Go to settings to enable.")
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = {
-                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                            intent.data = Uri.fromParts("package", context.packageName, null)
-                            context.startActivity(intent)
-                        }) {
-                            Text("Open Settings")
-                        }
-                    } else {
-                        Text("Storage permission is needed to access images.")
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = {
-                            launcher.launch(storagePermissions)
-                        }) {
-                            Text("Request Permission")
-                        }
-                    }
-                }
+                permissionGranted = true
             }
-        } else {
+        }
+        LaunchedEffect(permissionGranted) {
+            if (permissionGranted) {
+                galleryImagesViewModel.fetchImagesFromStorage(context)
+            }
+        }
+        if (permissionGranted) {
             when (galleryImagesState.status) {
                 Status.SUCCESS -> {
                     LazyVerticalStaggeredGrid(
@@ -202,6 +117,22 @@ fun GalleryPhotos(
                     Text("Error: ${galleryImagesState.message}")
                 }
             }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text("Storage permission is needed to access images.")
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(onClick = {
+                    context.requestForStoragePermission(storagePermissions) { isGranted ->
+                        permissionGranted = isGranted
+                    }
+                }) {
+                    Text("Request Permission")
+                }
+            }
         }
     }
 }
@@ -222,7 +153,7 @@ fun ImageCard(
         Column {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(image.uri)
+                    .data(image.imagePath)
                     .size(Size.ORIGINAL)
                     .crossfade(true)
                     .build(),
@@ -234,7 +165,7 @@ fun ImageCard(
             )
 
             Text(
-                text = image.name,
+                text = image.title,
                 color = Color.White,
                 style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
@@ -247,22 +178,4 @@ fun ImageCard(
             )
         }
     }
-}
-
-@Composable
-fun optimizedImageLoader(context: Context): ImageLoader {
-    return ImageLoader.Builder(context)
-        .crossfade(true)
-        .memoryCache {
-            MemoryCache.Builder(context)
-                .maxSizePercent(0.25)
-                .build()
-        }
-        .diskCache {
-            DiskCache.Builder()
-                .directory(context.cacheDir.resolve("image_cache"))
-                .maxSizePercent(0.02)
-                .build()
-        }
-        .build()
 }

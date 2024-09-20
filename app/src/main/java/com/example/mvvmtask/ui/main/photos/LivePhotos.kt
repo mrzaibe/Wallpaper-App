@@ -52,7 +52,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 @Composable
 fun PhotoListScreen(
     wallPaperViewModel: WallPaperViewModel,
-    onClickImage: (WallPaperPhotos) -> Unit
+    onClickImage: (Int) -> Unit
 ) {
     val photoListState =
         wallPaperViewModel.curatedPhotos.observeAsState(initial = Resource.loading(null))
@@ -156,7 +156,7 @@ fun ErrorView(message: String) {
 }
 
 @Composable
-fun PhotoList(photos: List<WallPaperPhotos>? = null, onClickImage: (WallPaperPhotos) -> Unit?) {
+fun PhotoList(photos: List<WallPaperPhotos>? = null, onClickImage: (Int) -> Unit?) {
     LazyVerticalStaggeredGrid(
         modifier = Modifier
             .fillMaxSize()
@@ -165,21 +165,22 @@ fun PhotoList(photos: List<WallPaperPhotos>? = null, onClickImage: (WallPaperPho
         columns = StaggeredGridCells.Fixed(2),
     ) {
         photos?.let {
-            items(photos) { photo ->
-                PhotoItem(photo, onClickImage)
+            items(photos.size) { index ->
+                PhotoItem(photos, index, onClickImage)
             }
         }
     }
 }
 
 @Composable
-fun PhotoItem(photo: WallPaperPhotos, onClickImage: (WallPaperPhotos) -> Unit?) {
+fun PhotoItem(photos: List<WallPaperPhotos>, position: Int, onClickImage: (Int) -> Unit?) {
+    val photo = photos[position]
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                onClickImage(photo)
+                onClickImage(position)
             }
     ) {
         Column {

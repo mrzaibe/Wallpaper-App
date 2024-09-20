@@ -34,11 +34,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.mvvmtask.R
 import com.example.mvvmtask.data.database.entities.SavedPhotosEntity
 import com.example.mvvmtask.utils.Filters
 import com.example.mvvmtask.utils.setWallpaper
@@ -46,11 +48,11 @@ import com.example.mvvmtask.utils.urlToBitmap
 import kotlinx.coroutines.CoroutineScope
 
 
-
 @Composable
 fun SavedImageView(
     scope: CoroutineScope,
-    savedPhotosEntity: SavedPhotosEntity?) {
+    savedPhotosEntity: SavedPhotosEntity?
+) {
     val showFilters = remember { mutableStateOf(false) }
     val selectedFilter = remember { mutableStateOf(Filters.Default) }
     val openDialog = remember { mutableStateOf(false) }
@@ -61,7 +63,7 @@ fun SavedImageView(
         AsyncImage(
             model = ImageRequest.Builder(context)
                 .data(savedPhotosEntity?.imagePath)
-                .transformations(selectedFilter.value.filterType) // Apply the selected filter
+                .transformations(selectedFilter.value.filterType)
                 .build(),
             contentDescription = null,
             modifier = Modifier
@@ -92,7 +94,6 @@ fun SavedImageView(
                                 selectedFilter.value = filter
                             }
                     ) {
-                        // Display a preview of the filter
                         Column(modifier = Modifier.fillMaxWidth()) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
@@ -129,13 +130,12 @@ fun SavedImageView(
                 .padding(
                     horizontal = 10.dp,
                     vertical = 10.dp
-                ), // Adjust padding to suit your design
+                ),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Button(
                 onClick = {
                     urlToBitmap(
-                        scope,
                         savedPhotosEntity?.imagePath ?: "",
                         context,
                         transformation = selectedFilter.value.filterType,
@@ -143,7 +143,8 @@ fun SavedImageView(
                             bitmap.value = loadedBitmap
                             openDialog.value = true
                         },
-                        onError = {})
+                        onError = {}, scope
+                    )
                 },
                 colors = ButtonDefaults.buttonColors(Color.Transparent),
                 modifier = Modifier
@@ -155,7 +156,7 @@ fun SavedImageView(
                     ),
             ) {
                 Text(
-                    text = "Set WallPaper",
+                    text = stringResource(R.string.set_wallpaper),
                     color = Color.White,
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
@@ -181,7 +182,7 @@ fun SavedImageView(
             ) {
                 Text(
                     color = Color.White,
-                    text = "Filters",
+                    text = stringResource(R.string.filters),
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
@@ -201,7 +202,6 @@ fun SavedImageView(
 
 }
 
-
 @Composable
 fun SetWallPaperDialog(
     openDialog: MutableState<Boolean>,
@@ -216,12 +216,12 @@ fun SetWallPaperDialog(
                 openDialog.value = false
             },
             title = {
-                Text(text = "Do you want to set this image as Wallpaper")
+                Text(text = stringResource(R.string.do_you_want_to_set_this_image_as_wallpaper))
             },
             text = {
                 Column {
                     Text(
-                        text = "Set to Home Screen",
+                        text = stringResource(R.string.set_to_home_screen),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
@@ -229,10 +229,11 @@ fun SetWallPaperDialog(
                                     setWallpaper(context, bitmap, WallpaperManager.FLAG_SYSTEM)
                                 }
                                 openDialog.value = false
-                            }.padding(horizontal = 5.dp, vertical = 8.dp)
+                            }
+                            .padding(horizontal = 5.dp, vertical = 8.dp)
                     )
                     Text(
-                        text = "Set to Lock Screen",
+                        text = stringResource(R.string.set_to_lock_screen),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
@@ -240,10 +241,11 @@ fun SetWallPaperDialog(
                                     setWallpaper(context, bitmap, WallpaperManager.FLAG_LOCK)
                                 }
                                 openDialog.value = false
-                            }.padding(horizontal = 5.dp, vertical = 8.dp)
+                            }
+                            .padding(horizontal = 5.dp, vertical = 8.dp)
                     )
                     Text(
-                        text = "Both",
+                        text = stringResource(R.string.both),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
@@ -255,7 +257,8 @@ fun SetWallPaperDialog(
                                     )
                                 }
                                 openDialog.value = false
-                            }.padding(horizontal = 5.dp, vertical = 8.dp)
+                            }
+                            .padding(horizontal = 5.dp, vertical = 8.dp)
                     )
                 }
             },

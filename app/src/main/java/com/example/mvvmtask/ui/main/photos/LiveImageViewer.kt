@@ -1,0 +1,297 @@
+package com.example.mvvmtask.ui.main.photos
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.mvvmtask.R
+import com.example.mvvmtask.data.model.apimodel.WallPaperPhotos
+import com.example.mvvmtask.ui.viewmodel.GalleryImagesViewModel
+import com.example.mvvmtask.ui.viewmodel.SavedPhotosViewModel
+import com.example.mvvmtask.ui.viewmodel.WallPaperViewModel
+import com.example.mvvmtask.utils.ProgressDialog
+import com.example.mvvmtask.utils.Resource
+import com.example.mvvmtask.utils.compressAndSaveImage
+import com.example.mvvmtask.utils.compressAndSaveLiveImage
+import com.example.mvvmtask.utils.showToast
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.getViewModel
+
+@OptIn(ExperimentalPagerApi::class)
+@Composable
+fun ImageViewer(
+    wallPaperViewModel: WallPaperViewModel,
+    position: Int,
+    savedPhotosViewModel: SavedPhotosViewModel= getViewModel()
+) {
+    val context = LocalContext.current
+    val pagerState = rememberPagerState()
+    var currentPage by remember { mutableIntStateOf(0) }
+
+    val photoListState =
+        wallPaperViewModel.curatedPhotos.observeAsState(initial = Resource.loading(null))
+
+    val imagesList = photoListState.value.data ?: emptyList()
+
+    var titleDialog by remember { mutableStateOf("Images Compressing") }
+    var showDialog by remember { mutableStateOf(false) }
+    var progress by remember { mutableStateOf(0 to 0) }
+    var job by remember { mutableStateOf<Job?>(null) }
+
+    LaunchedEffect(key1 = position) {
+        if (imagesList.isNotEmpty() && position in imagesList.indices) {
+            pagerState.scrollToPage(position)
+        }
+    }
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            currentPage = page
+        }
+    }
+
+    if (imagesList.isNotEmpty()) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "${currentPage + 1} / ${imagesList.size}",
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(10.dp),
+                color = Color.Black,
+                fontFamily = FontFamily.SansSerif,
+                fontSize = 18.sp,
+            )
+
+            HorizontalPager(
+                count = imagesList.size,
+                state = pagerState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxSize(0.8f)
+            ) { page ->
+                ImageCardPager(imagesList[page])
+            }
+            Row(
+                modifier = Modifier.padding(horizontal = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Button(colors = ButtonDefaults.buttonColors(Color.Transparent), modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 10.dp)
+                    .background(
+                        Color(0xFF000000),
+                        shape = RoundedCornerShape(12.dp)
+                    ), onClick = {
+                    if (job?.isActive == true) {
+                        context.showToast(context.getString(R.string.a_job_is_already_running))
+                        return@Button
+                    }
+                    showDialog = true
+                    titleDialog = context.getString(R.string.image_saving)
+                    job = context.compressAndSaveLiveImage(
+                        listOf(imagesList[currentPage]),
+                        quality = 100,
+                        onSavedImages = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                savedPhotosViewModel.insertMultiplePhotos(it)
+                            }
+                        },
+                        onProgressUpdate = { processed, total ->
+                            progress = processed to total
+                        },
+                        onCompletion = {
+                            context.showToast(context.getString(R.string.image_saved))
+                            showDialog = false
+                            job?.cancel()
+                        },
+                        onError = { errorMessage ->
+                            showDialog = false
+                            context.showToast(errorMessage)
+                        })
+                }) {
+                    Text(
+                        text = stringResource(R.string.save),
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Button(colors = ButtonDefaults.buttonColors(Color.Transparent),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(vertical = 10.dp)
+                        .background(
+                            Color(0xFF000000),
+                            shape = RoundedCornerShape(12.dp)
+                        ), onClick = {
+                        if (job?.isActive == true) {
+                            context.showToast(context.getString(R.string.a_job_is_already_running))
+                            return@Button
+                        }
+                        showDialog = true
+                        titleDialog = context.getString(R.string.images_saving)
+                        job = context.compressAndSaveLiveImage(imagesList, quality = 100, onSavedImages = {
+                            savedPhotosViewModel.insertMultiplePhotos(it)
+                        }, onProgressUpdate = { processed, total ->
+                            progress = processed to total
+                        }, onCompletion = {
+                            context.showToast(context.getString(R.string.images_saved))
+                            showDialog = false
+                            job?.cancel()
+                        }, onError = { errorMessage ->
+                            showDialog = false
+                            context.showToast(errorMessage)
+                        })
+
+                    }) {
+                    Text(
+                        text = stringResource(R.string.save_all),
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.padding(horizontal = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Button(colors = ButtonDefaults.buttonColors(Color.Transparent), modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        Color(0xFF000000),
+                        shape = RoundedCornerShape(12.dp)
+                    ), onClick = {
+                    if (job?.isActive == true) {
+                        context.showToast(context.getString(R.string.a_job_is_already_running))
+                        return@Button
+                    }
+                    showDialog = true
+                    titleDialog = context.getString(R.string.image_compressing)
+                    job =context.compressAndSaveLiveImage(
+                        listOf(imagesList[currentPage]),
+                        onSavedImages = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                savedPhotosViewModel.insertMultiplePhotos(it)
+                            }
+                        },
+                        onProgressUpdate = { processed, total ->
+                            progress = processed to total
+                        },
+                        onCompletion = {
+                            context.showToast(context.getString(R.string.image_compressed))
+                            showDialog = false
+                        },
+                        onError = { errorMessage ->
+                            showDialog = false
+                            context.showToast(errorMessage)
+                        })
+
+                }) {
+                    Text(
+                        text = stringResource(R.string.compress),
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Button(colors = ButtonDefaults.buttonColors(Color.Transparent), modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        Color(0xFF000000),
+                        shape = RoundedCornerShape(12.dp)
+                    ), onClick = {
+                    if (job?.isActive == true) {
+                        context.showToast(context.getString(R.string.a_job_is_already_running))
+                        return@Button
+                    }
+                    showDialog = true
+                    titleDialog = context.getString(R.string.images_compressing)
+                    job = context.compressAndSaveLiveImage(imagesList, onSavedImages = {
+                        savedPhotosViewModel.insertMultiplePhotos(it)
+                    }, onProgressUpdate = { processed, total ->
+                        progress = processed to total
+                    }, onCompletion = {
+                        context.showToast(context.getString(R.string.images_compressed))
+                        showDialog = false
+                    }, onError = { errorMessage ->
+                        showDialog = false
+                        context.showToast(errorMessage)
+                    })
+
+                }) {
+                    Text(
+                        text = stringResource(R.string.compress_all),
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+    if (showDialog) {
+        ProgressDialog(
+            titleDialog,
+            progress = progress.first,
+            total = progress.second,
+            onDismiss = {
+                job?.cancel() // Cancel the job when the dialog is dismissed
+                showDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun ImageCardPager(
+    wallPaperPhotos: WallPaperPhotos,
+) {
+    AsyncImage(
+        model = wallPaperPhotos.src.large,
+        contentDescription = null,
+        modifier = Modifier
+            .fillMaxSize(),
+        contentScale = ContentScale.FillWidth
+    )
+
+}
+
+
+

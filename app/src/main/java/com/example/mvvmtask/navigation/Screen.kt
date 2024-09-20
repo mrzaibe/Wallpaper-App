@@ -1,6 +1,8 @@
 package com.example.mvvmtask.navigation
 
 import com.example.mvvmtask.R
+import com.example.mvvmtask.utils.OPEN_FROM
+import com.example.mvvmtask.utils.SAVED
 
 
 sealed class Screen(
@@ -33,8 +35,8 @@ sealed class Screen(
         icon_active = R.drawable.ic_bookmark_active
     )
 
-    object ImageViewer : Screen(route = "ImageViewer/{photoItem}")
+    object ImageViewer : Screen(route = "ImageViewer/{position}")
     object SavedImageViewer : Screen(route = "SavedImageViewer/{savedItem}")
     object EditImageScreen : Screen(route = "EditImageScreen/{savedItemEdit}")
-    object GalleryImageScreen: Screen(route = "GalleryImageViewerScreen/{position}")
+    object GalleryImageScreen : Screen(route = "GalleryImageViewerScreen/{position}/{OPEN_FROM}")
 }

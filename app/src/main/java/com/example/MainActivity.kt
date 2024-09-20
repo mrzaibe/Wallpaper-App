@@ -21,7 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.mvvmtask.navigation.Screen
 import com.example.mvvmtask.navigation.SetupNavGraph
 import com.example.mvvmtask.navigation.TopBar
-import com.example.mvvmtask.ui.main.gallery.GalleryImagesViewModel
+import com.example.mvvmtask.ui.viewmodel.GalleryImagesViewModel
 import com.example.mvvmtask.ui.theme.MVVMTaskTheme
 import com.example.mvvmtask.ui.viewmodel.SavedPhotosViewModel
 import com.example.mvvmtask.ui.viewmodel.WallPaperViewModel
@@ -40,8 +40,7 @@ class MainActivity : ComponentActivity() {
                 App(
                     wallPaperViewModel = viewModel,
                     savedPhotosViewModel = savedPhotosViewModel,
-                    galleryImagesViewModel = galleryImagesViewModel
-                )
+                    galleryImagesViewModel = galleryImagesViewModel)
             }
         }
     }
