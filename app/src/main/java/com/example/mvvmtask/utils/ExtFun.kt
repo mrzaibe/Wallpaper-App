@@ -229,6 +229,38 @@ fun Context.requestForStoragePermission(
 
 }
 
+fun Context.requestForGalleryPermission(
+    permissions: Array<String>,
+    onComposeGranted: ((Boolean) -> Unit)? = null,
+) {
+
+    Permissions.check(this, permissions, null, null, object : PermissionHandler() {
+        override fun onGranted() {
+            onComposeGranted?.invoke(true)
+        }
+
+        override fun onDenied(context: Context?, deniedPermissions: ArrayList<String>?) {
+            super.onDenied(context, deniedPermissions)
+            onComposeGranted?.invoke(false)
+        }
+
+        override fun onBlocked(
+            context: Context?, blockedList: ArrayList<String>?
+        ): Boolean {
+            return super.onBlocked(context, blockedList)
+        }
+
+        override fun onJustBlocked(
+            context: Context?,
+            justBlockedList: ArrayList<String>?,
+            deniedPermissions: ArrayList<String>?
+        ) {
+            super.onJustBlocked(context, justBlockedList, deniedPermissions)
+        }
+    })
+
+}
+
 fun getRealPathFromURI(uri: Uri, context: Context): String? {
     var filePath: String? = null
     val projection = arrayOf(MediaStore.Images.Media.DATA)

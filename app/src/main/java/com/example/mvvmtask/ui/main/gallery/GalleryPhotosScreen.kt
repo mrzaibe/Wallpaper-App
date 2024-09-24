@@ -43,6 +43,7 @@ import com.example.mvvmtask.data.model.gallery.ImageData
 import com.example.mvvmtask.ui.main.photos.LoadingView
 import com.example.mvvmtask.ui.viewmodel.GalleryImagesViewModel
 import com.example.mvvmtask.utils.Status
+import com.example.mvvmtask.utils.requestForGalleryPermission
 import com.example.mvvmtask.utils.requestForStoragePermission
 
 @Composable
@@ -126,7 +127,7 @@ fun GalleryPhotos(
                 Text("Storage permission is needed to access images.")
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(onClick = {
-                    context.requestForStoragePermission(storagePermissions) { isGranted ->
+                    context.requestForGalleryPermission(storagePermissions) { isGranted ->
                         permissionGranted = isGranted
                     }
                 }) {
