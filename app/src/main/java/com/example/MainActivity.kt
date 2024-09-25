@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -64,30 +65,34 @@ fun App(
     val currentRoute = navBackStackEntry?.destination?.route
 
     Column {
-        if (currentRoute in items.map { item -> item.route }) {
-            Text(
-                text = "HD Wallpapers",
-                modifier = Modifier.padding(20.dp),
-                color = Color.Black,
-                style = MaterialTheme.typography.titleLarge
-            )
-        }
-        Scaffold(
-            modifier = Modifier.background(Color.White),
-            topBar = {
-                if (currentRoute in items.map { it.route }) {
-                    TopBar(navController = navController)
-                }
+        Row {
+            if (currentRoute in items.map { item -> item.route }) {
+                Text(
+                    text = "HD Wallpapers",
+                    modifier = Modifier.padding(20.dp),
+                    color = Color.Black,
+                    style = MaterialTheme.typography.titleLarge
+                )
             }
-        ) {
-            SetupNavGraph(
-                it,
-                navController = navController,
-                startDestination = Screen.Splash.route,
-                wallPaperViewModel,
-                savedPhotosViewModel = savedPhotosViewModel,
-                galleryImagesViewModel = galleryImagesViewModel
-            )
+        }
+        Row {
+            Scaffold(
+                modifier = Modifier.background(Color.White),
+                topBar = {
+                    if (currentRoute in items.map { it.route }) {
+                        TopBar(navController = navController)
+                    }
+                }
+            ) {
+                SetupNavGraph(
+                    it,
+                    navController = navController,
+                    startDestination = Screen.Splash.route,
+                    wallPaperViewModel,
+                    savedPhotosViewModel = savedPhotosViewModel,
+                    galleryImagesViewModel = galleryImagesViewModel
+                )
+            }
         }
     }
 

@@ -24,7 +24,6 @@ import com.example.mvvmtask.ui.main.splash.AnimatedSplashScreen
 import com.example.mvvmtask.ui.viewmodel.GalleryImagesViewModel
 import com.example.mvvmtask.ui.viewmodel.SavedPhotosViewModel
 import com.example.mvvmtask.ui.viewmodel.WallPaperViewModel
-import com.example.mvvmtask.utils.OPEN_FROM
 import com.example.mvvmtask.utils.SAVED
 import com.google.gson.Gson
 import java.net.URLDecoder

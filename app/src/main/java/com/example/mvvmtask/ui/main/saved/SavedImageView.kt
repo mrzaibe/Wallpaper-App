@@ -7,6 +7,8 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,11 +29,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -60,16 +67,40 @@ fun SavedImageView(
 
     val context = LocalContext.current
     Box(modifier = Modifier.fillMaxSize()) {
-        AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(savedPhotosEntity?.imagePath)
-                .transformations(selectedFilter.value.filterType)
-                .build(),
-            contentDescription = null,
+        var scale by remember {
+            mutableFloatStateOf(1f)
+        }
+        val offset by remember {
+            mutableStateOf(Offset.Zero)
+        }
+
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxSize(0.9f)
-        )
+        ) {
+            val state = rememberTransformableState { zoomChange, panChange, rotationChange ->
+                scale = (scale * zoomChange).coerceIn(1f, 5f)
+            }
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(savedPhotosEntity?.imagePath)
+                    .transformations(selectedFilter.value.filterType)
+                    .build(),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = offset.x
+                        translationY = offset.y
+                    }
+                    .transformable(state)
+
+            )
+        }
+
         AnimatedVisibility(
             visible = showFilters.value,
             enter = slideInVertically(initialOffsetY = { it / 2 }),

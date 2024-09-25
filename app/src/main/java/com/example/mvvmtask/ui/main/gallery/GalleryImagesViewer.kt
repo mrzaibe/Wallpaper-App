@@ -1,7 +1,11 @@
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,7 +27,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -96,15 +103,38 @@ fun GalleryImagesViewer(
                 fontFamily = FontFamily.SansSerif,
                 fontSize = 18.sp,
             )
-            HorizontalPager(
-                count = galleryImages.size,
-                state = pagerState,
+            var scale by remember {
+                mutableFloatStateOf(1f)
+            }
+            val offset by remember {
+                mutableStateOf(Offset.Zero)
+            }
+
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.8f)
-            ) { page ->
-                GalleryImageCardPager(galleryImages[page].imagePath)
+            ) {
+                val state = rememberTransformableState { zoomChange, panChange, rotationChange ->
+                    scale = (scale * zoomChange).coerceIn(1f, 5f)
+                }
+                HorizontalPager(
+                    count = galleryImages.size,
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = offset.x
+                            translationY = offset.y
+                        }
+                        .transformable(state)
+                ) { page ->
+                    GalleryImageCardPager(galleryImages[page].imagePath)
+                }
             }
+
             Row(
                 modifier = Modifier.padding(horizontal = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -280,12 +310,15 @@ fun GalleryImagesViewer(
 
 @Composable
 fun GalleryImageCardPager(imagePath: String) {
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current).data(imagePath).size(Size.ORIGINAL)
-            .crossfade(true).build(),
-        contentDescription = null,
-        modifier = Modifier.fillMaxSize(),
-        alignment = Alignment.Center,
-        contentScale = ContentScale.FillWidth
-    )
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current).data(imagePath).size(Size.ORIGINAL)
+                .crossfade(true).build(),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize(),
+            alignment = Alignment.Center,
+            contentScale = ContentScale.FillWidth
+        )
+
+
 }

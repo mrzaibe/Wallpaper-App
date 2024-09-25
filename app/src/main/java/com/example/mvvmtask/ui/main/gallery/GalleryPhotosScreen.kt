@@ -40,11 +40,10 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.mvvmtask.data.model.gallery.ImageData
-import com.example.mvvmtask.ui.main.photos.LoadingView
+import com.example.mvvmtask.ui.main.saved.LoadingView
 import com.example.mvvmtask.ui.viewmodel.GalleryImagesViewModel
 import com.example.mvvmtask.utils.Status
 import com.example.mvvmtask.utils.requestForGalleryPermission
-import com.example.mvvmtask.utils.requestForStoragePermission
 
 @Composable
 fun GalleryPhotos(
