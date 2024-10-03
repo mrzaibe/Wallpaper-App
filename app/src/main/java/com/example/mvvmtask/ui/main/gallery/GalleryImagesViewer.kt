@@ -80,17 +80,7 @@ fun GalleryImagesViewer(
     var progress by remember { mutableStateOf(0 to 0) }
     var job by remember { mutableStateOf<Job?>(null) }
 
-    LaunchedEffect(key1 = position) {
-        if (galleryImages.isNotEmpty() && position in galleryImages.indices) {
-            pagerState.scrollToPage(position)
-        }
-    }
 
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
-            currentPage = page
-        }
-    }
 
     if (galleryImages.isNotEmpty()) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -132,6 +122,17 @@ fun GalleryImagesViewer(
                         .transformable(state)
                 ) { page ->
                     GalleryImageCardPager(galleryImages[page].imagePath)
+                }
+                LaunchedEffect(key1 = position) {
+                    if (galleryImages.isNotEmpty() && position in galleryImages.indices) {
+                        pagerState.scrollToPage(position)
+                    }
+                }
+
+                LaunchedEffect(pagerState) {
+                    snapshotFlow { pagerState.currentPage }.collect { page ->
+                        currentPage = page
+                    }
                 }
             }
 
@@ -295,6 +296,7 @@ fun GalleryImagesViewer(
 
         }
     }
+
     if (showDialog) {
         ProgressDialog(
             titleDialog,

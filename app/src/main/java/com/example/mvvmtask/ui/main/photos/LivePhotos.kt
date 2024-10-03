@@ -57,7 +57,7 @@ fun PhotoListScreen(
     val photoListState =
         wallPaperViewModel.curatedPhotos.observeAsState(initial = Resource.loading(null))
     var isRefreshing by remember { mutableStateOf(false) }
-    var context = LocalContext.current
+
     var text by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -96,6 +96,7 @@ fun PhotoListScreen(
             singleLine = true,
 
             )
+
         SwipeRefresh(
             state = rememberSwipeRefreshState(isRefreshing),
             onRefresh = {
